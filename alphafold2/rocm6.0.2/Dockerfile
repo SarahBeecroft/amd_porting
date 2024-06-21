@@ -1,4 +1,4 @@
-FROM  quay.io/pawsey/rocm-mpich-base:rocm6.0.2-mpich3.4.3-ubuntu22
+FROM quay.io/pawsey/rocm-mpich-base:rocm6.0.2-mpich3.4.3-ubuntu22
 
 RUN apt-get update && \
     apt install apt-transport-https curl gnupg -y && \
@@ -10,42 +10,28 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean
 
-#
 # Alphafold info
-#
 ENV PYTHON_VERSION='3.10'
-#ENV JAX_VERSION='0.4.14'
-ENV JAX_VERSION='0.4.29'
 ENV ALPHAFOLD_VERSION='69afc4d'
-ENV ARIA2_VERSION='1.36.0'
 ENV HHSUITE_VERSION='3.3.0'
-ENV OPENMM_VERSION='8.1.1'
-ENV OPENMM_HIP_VERSION='1631e8d'
 ENV JAX_PLATFORMS "rocm,cpu"
-#
+
 # ROCm environment
-#
 ENV ROCM_RELEASE 6.0.2
 ENV ROCM_PATH /opt/rocm-$ROCM_RELEASE
 ENV PATH $ROCM_PATH/bin:$ROCM_PATH/llvm/bin:$PATH
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROCM_PATH/lib
-#
+
 # Mark RCCL as non-debug - this can be overriden by RCCL debug build. 
-#
 ENV RCCL_DEBUG 0
 
-#
-# Install miniforge (mamba)
-#
 
+# Install miniforge (mamba)
 RUN set -eux ; \
     curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" ; \
     bash Miniforge3-$(uname)-$(uname -m).sh -b -p /opt/miniforge3 -s ; \
     rm -rf ./Miniforge3-*
 ENV PATH /opt/miniforge3/bin:$PATH
-
-ENV CC gcc
-ENV CXX g++
 
 #
 # Install hh-suite.
@@ -67,18 +53,17 @@ RUN set -eux ; \
 # 
 ARG PYTHON_VERSION
 RUN set -eux ; \
-  mamba install -y \
-  python=$PYTHON_VERSION \
+    mamba install -y -c conda-forge -c bioconda \
+    python=$PYTHON_VERSION \
     swig \
     numpy==1.24.3 \
     Cython \
-    pandas==2.0.3 ; \
-  mamba install -y -c conda-forge \
+    pandas==2.0.3 \
     dm-tree==0.1.8 \
-    pdbfixer==1.9 ; \
-  mamba install -y -c bioconda \
-    kalign2 ; \
-  mamba install -y streamhpc::openmm-hip
+    pdbfixer==1.9 \
+    kalign2 \
+    streamhpc::openmm-hip ; \
+    mamba clean -afy
 RUN pip install \
     ml-collections==0.1.0 \
     dm-haiku==0.0.12 \
@@ -87,21 +72,18 @@ RUN pip install \
     mock \
     chex==0.0.7 \
     immutabledict==2.0.0 \
-    scipy==1.11.1 \
     biopython==1.79 \
     typing-extensions \
     tensorflow \
     --no-cache-dir
 
-#
+
 # Install JAX
-#
 RUN python3 -m pip install https://github.com/ROCm/jax/releases/download/rocm-jaxlib-v0.4.28/jaxlib-0.4.28+rocm602-cp310-cp310-manylinux2014_x86_64.whl --no-cache-dir && \
   python3 -m pip install https://github.com/ROCm/jax/archive/refs/tags/rocm-jaxlib-v0.4.28.tar.gz --no-cache-dir
 
-#
+
 # Clone alphafold 
-#
 ARG ALPHAFOLD_VERSION
 ENV ALPHAFOLD_PATH /opt/alphafold
 RUN set -eux ; \
