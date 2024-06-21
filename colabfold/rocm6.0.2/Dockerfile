@@ -14,12 +14,9 @@ RUN apt-get update && \
 # Alphafold info
 #
 ENV PYTHON_VERSION='3.10'
-ENV JAX_VERSION='0.4.14'
 ENV ALPHAFOLD_VERSION='69afc4d'
-ENV ARIA2_VERSION='1.36.0'
 ENV HHSUITE_VERSION='3.3.0'
-ENV OPENMM_VERSION='8.0.0'
-ENV OPENMM_HIP_VERSION='1631e8d'
+
 #
 # ROCm environment
 #
@@ -42,9 +39,6 @@ RUN set -eux ; \
     rm -rf ./Miniforge3-*
 ENV PATH /opt/miniforge3/bin:$PATH
 
-ENV CC gcc
-ENV CXX g++
-
 #
 # Install hh-suite.
 #
@@ -64,18 +58,18 @@ RUN set -eux ; \
 #Install mamba environment
  
 ARG PYTHON_VERSION
-RUN mamba install -y python=$PYTHON_VERSION \
+RUN mamba install -y -c conda-forge -c bioconda \
+    python=$PYTHON_VERSION \
     swig \
     numpy==1.24.3 \
     Cython \
-    pandas==2.0.3
-RUN mamba install -y -c conda-forge \
+    pandas==2.0.3 \
     dm-tree==0.1.8 \
-    pdbfixer==1.9
-RUN mamba install -y -c bioconda \
+    pdbfixer==1.9 \
     kalign2=2.04 \
-    mmseqs2=15.6f452
-RUN mamba install -y streamhpc::openmm-hip
+    mmseqs2=15.6f452 \
+    streamhpc::openmm-hip && \
+    mamba clean -afy
 RUN pip install \
     tensorflow \
     ml-collections==0.1.0 \
@@ -85,9 +79,8 @@ RUN pip install \
     mock \
     chex==0.0.7 \
     immutabledict==2.0.0 \
-    scipy==1.11.1 \
-    biopython==1.79
-
+    biopython==1.79 --no-cache-dir
+    
 #############
 ##COLABFOLD##
 #############
@@ -95,28 +88,27 @@ RUN pip install \
 ENV CURRENTPATH='/opt'
 ENV COLABFOLDDIR="${CURRENTPATH}/localcolabfold"
 
-RUN mkdir -p "${COLABFOLDDIR}"
-RUN cd "${COLABFOLDDIR}"
+RUN mkdir -p "${COLABFOLDDIR}" ; \ 
+    cd "${COLABFOLDDIR}"
 
 # install ColabFold and Jaxlib
 RUN pip install --no-warn-conflicts \
-    "colabfold[alphafold-without-jax] @ git+https://github.com/sokrypton/ColabFold" --no-cache-dir
-RUN pip install "colabfold[alphafold]" --no-cache-dir
-RUN pip install --upgrade tensorflow --no-cache-dir
+    "colabfold[alphafold-without-jax] @ git+https://github.com/sokrypton/ColabFold" --no-cache-dir ; \
+    pip install "colabfold[alphafold]" --no-cache-dir ; \
+    pip install --upgrade tensorflow --no-cache-dir
 
 # Download the updater
 RUN wget -qnc -O "$COLABFOLDDIR/update_linux.sh" \
-    https://raw.githubusercontent.com/YoshitakaMo/localcolabfold/main/update_linux.sh
-RUN chmod +x "$COLABFOLDDIR/update_linux.sh"
-
-RUN cd /opt/miniforge3/lib/python3.10/site-packages/colabfold && sed -i -e "s#from matplotlib import pyplot as plt#import matplotlib\nmatplotlib.use('Agg')\nimport matplotlib.pyplot as plt#g" plot.py && sed -i -e "s#appdirs.user_cache_dir(__package__ or \"colabfold\")#\"${COLABFOLDDIR}/colabfold\"#g" download.py && \
-  rm -rf __pycache__
+    https://raw.githubusercontent.com/YoshitakaMo/localcolabfold/main/update_linux.sh ;\
+    chmod +x "$COLABFOLDDIR/update_linux.sh" ; \
+    cd /opt/miniforge3/lib/python3.10/site-packages/colabfold && sed -i -e "s#from matplotlib import pyplot as plt#import matplotlib\nmatplotlib.use('Agg')\nimport matplotlib.pyplot as plt#g" plot.py && sed -i -e "s#appdirs.user_cache_dir(__package__ or \"colabfold\")#\"${COLABFOLDDIR}/colabfold\"#g" download.py && \
+    rm -rf __pycache__
 
 # Download weights
 RUN python3 -m colabfold.download
-#
+
+
 # Install JAX
-#
 RUN python3 -m pip install https://github.com/ROCm/jax/releases/download/rocm-jaxlib-v0.4.28/jaxlib-0.4.28+rocm602-cp310-cp310-manylinux2014_x86_64.whl --no-cache-dir && \
   python3 -m pip install https://github.com/ROCm/jax/archive/refs/tags/rocm-jaxlib-v0.4.28.tar.gz --no-cache-dir
 ENV JAX_PLATFORMS "rocm,cpu"
