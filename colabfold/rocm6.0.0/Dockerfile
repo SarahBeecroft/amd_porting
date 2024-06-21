@@ -78,7 +78,7 @@ RUN conda install -y -c conda-forge \
 RUN conda install -y -c bioconda \
     kalign2=2.04 \
     mmseqs2=15.6f452
-RUN conda install streamhpc::openmm-hip
+RUN conda install -y streamhpc::openmm-hip
 RUN pip install \
     tensorflow \
     ml-collections==0.1.0 \
