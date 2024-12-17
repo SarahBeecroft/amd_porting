@@ -1,7 +1,7 @@
 # Running AlphaFold2 on Setonix
 ## Overview
 
-This guide explains how to run AlphaFold2 (AF2) on Pawsey's Setonix supercomputer. Please note there is currently a memory limitation that restricts computations to proteins of approximately 3,013 amino acids or less.
+This guide explains how to run AlphaFold2 (AF2) on Pawsey's Setonix supercomputer. Please note there is currently a memory limitation that restricts computations to proteins of approximately 3,013 amino acids or less. Attempting to process larger proteins will result in out-of-memory errors.
 
 ## Reference Data Location
 
@@ -59,7 +59,7 @@ srun -N 1 -n 1 -c 8 --gres=gpu:1 --gpus-per-task=1 --gpu-bind=closest \
 
 ## Important Notes and Limitations
 
-1. **Size Limitation**: Currently, there is a memory limit that restricts computations to proteins of approximately 3,013 amino acids or less. Attempting to process larger proteins will result in out-of-memory errors.
+1. **Fasta file input**: Please note you must change the template script to point to your FASTA file `--fasta_paths=/path/to/your/sequence.fasta`
 
 2. **Template date**: Please note you should change the `--max_template_date` to suit your analysis.
 
@@ -69,17 +69,12 @@ srun -N 1 -n 1 -c 8 --gres=gpu:1 --gpus-per-task=1 --gpu-bind=closest \
 
 ## Running Your Job
 
-1. Modify the template script to point to your FASTA file:
-   ```bash
-   --fasta_paths=/path/to/your/sequence.fasta
-   ```
-
-2. Submit your job:
+1. Submit your job:
    ```bash
    sbatch run_af2.slurm
    ```
 
-3. Monitor your job:
+2. Monitor your job:
    ```bash
    squeue -u $USER
    ```
