@@ -3,12 +3,6 @@
 
 This guide explains how to run AlphaFold2 (AF2) on Pawsey's Setonix supercomputer. Please note there is currently a memory limitation that restricts computations to proteins of approximately 3,013 amino acids or less.
 
-## Prerequisites
-
-- A Pawsey account with access to the `pawsey0001-gpu` project
-- Your protein sequence in FASTA format
-- Basic familiarity with SLURM job submission
-
 ## Reference Data Location
 
 AlphaFold2 requires several reference databases. On Setonix, these are located at:
@@ -29,11 +23,11 @@ Below is a template SLURM script for running AlphaFold2. Save this as `run_af2.s
 
 ```bash
 #!/bin/bash -l
-#SBATCH -A pawsey0001-gpu
+#SBATCH -A ${PAWSEYPROJECT}-gpu
 #SBATCH --nodes=1
-#SBATCH --exclusive
 #SBATCH --partition=gpu
 #SBATCH --time=10:00:00
+#SBATCH --gres=gpu:1
 
 # Set thread count
 export OMP_NUM_THREADS=1
@@ -42,8 +36,8 @@ export OMP_NUM_THREADS=1
 module load singularity/4.1.0-slurm
 
 # Run AlphaFold2
-srun -N 1 -n 1 -c 64 --gpus-per-node=8 --gpus-per-task=8 \
-  singularity exec alphafold_rocm6.1.1_openmm8.0.0.sif python /opt/alphafold/run_alphafold.py \
+srun -N 1 -n 1 -c 8 --gres=gpu:1 --gpus-per-task=1 --gpu-bind=closest \
+  singularity exec alphafold2.sif python /opt/alphafold/run_alphafold.py \
   --fasta_paths=/path/to/your/sequence.fasta \
   --model_preset=monomer \
   --use_gpu_relax=True \
@@ -55,7 +49,7 @@ srun -N 1 -n 1 -c 64 --gpus-per-node=8 --gpus-per-task=8 \
   --template_mmcif_dir=/scratch/references/alphafold_feb2024/databases/pdb_mmcif/mmcif_files \
   --obsolete_pdbs_path=/scratch/references/alphafold_feb2024/databases/pdb_mmcif/obsolete.dat \
   --small_bfd_database_path=/scratch/references/alphafold_feb2024/databases/small_bfd/bfd-first_non_consensus_sequences.fasta \
-  --output_dir=/scratch/pawsey0001/YOUR_USERNAME/output/${SLURM_JOB_ID} \
+  --output_dir=${MYSCRATCH}/alphafold2/output/${SLURM_JOB_ID} \
   --max_template_date=2023-05-14 \
   --db_preset=reduced_dbs \
   --logtostderr \
@@ -67,12 +61,9 @@ srun -N 1 -n 1 -c 64 --gpus-per-node=8 --gpus-per-task=8 \
 
 1. **Size Limitation**: Currently, there is a memory limit that restricts computations to proteins of approximately 3,013 amino acids or less. Attempting to process larger proteins will result in out-of-memory errors.
 
-2. **Resource Allocation**:
-   - The script requests an exclusive node with 8 GPUs
-   - Default runtime is set to 10 hours
-   - Uses 64 CPU cores
+2. **Template date**: Please note you should change the `--max_template_date` to suit your analysis.
 
-3. **Output Directory**: Remember to modify the `--output_dir` path to include your username
+3. **Output Directory**: Remember to modify the `--output_dir` path to suit your needs if required
 
 4. **Database Preset**: The script uses `reduced_dbs` preset for faster processing. For higher accuracy, you can change to `full_dbs` but this will increase runtime.
 
