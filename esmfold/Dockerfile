@@ -21,4 +21,4 @@ RUN	pip install --no-cache-dir \
     "pydantic<2.0"
 
 RUN	pip install --no-cache-dir deepspeed==0.9.2
-COPY primitives.py /opt/openfold/openfold/model/primitives.py
+COPY fix_primitives.py /opt/openfold/openfold/model/primitives.py
