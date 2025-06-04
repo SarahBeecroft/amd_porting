@@ -7,8 +7,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install ESMFold dependencies
-RUN	pip install --no-cache-dir git+https://github.com/facebookresearch/esm.git
-RUN	pip install --no-cache-dir \
+RUN pip install --no-cache-dir git+https://github.com/facebookresearch/esm.git
+RUN pip install --no-cache-dir \
     PyYAML==5.4.1 \
     requests==2.26.0 \
     tqdm==4.62.2 \
@@ -19,6 +19,6 @@ RUN	pip install --no-cache-dir \
     wandb==0.12.21 \
     biotite \
     "pydantic<2.0"
-
 RUN	pip install --no-cache-dir deepspeed==0.9.2
+
 COPY fix_primitives.py /opt/openfold/openfold/model/primitives.py
