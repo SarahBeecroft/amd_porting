@@ -20,22 +20,17 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean
 
-#
 # ROCm environment
-#
 ENV ROCM_RELEASE 6.2.2
 ENV ROCM_PATH /opt/rocm-$ROCM_RELEASE
 ENV PATH $ROCM_PATH/bin:$ROCM_PATH/llvm/bin:$PATH
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROCM_PATH/lib
 
-#
 # Mark RCCL as non-debug - this can be overriden by RCCL debug build. 
-#
 ENV RCCL_DEBUG 0
 ENV HIP_PLATFORM=amd
 ENV PYTORCH_ROCM_ARCH=gfx90a
 
-#RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm6.3 --no-cache-dir
 RUN pip install --no-cache-dir \
 biopython==1.79 \
 "scipy<=1.15.0" \
@@ -55,7 +50,7 @@ typing-extensions \
 wandb==0.12.21 
 
 
-## Install HMMER WORKS
+## Install HMMER 
 WORKDIR /opt
 RUN wget http://eddylab.org/software/hmmer/hmmer-3.3.2.tar.gz && \
     tar -xzf hmmer-3.3.2.tar.gz && \
@@ -90,7 +85,7 @@ RUN git clone https://github.com/soedinglab/MMseqs2.git && \
     cd /opt && \
     rm -rf MMseqs2
 
-#Install pdbfixer 
+# Install pdbfixer 
 WORKDIR /opt
 RUN wget https://github.com/openmm/pdbfixer/archive/refs/tags/1.9.tar.gz && \
     tar xzvf 1.9.tar.gz && \
@@ -98,7 +93,7 @@ RUN wget https://github.com/openmm/pdbfixer/archive/refs/tags/1.9.tar.gz && \
     cd pdbfixer-1.9 && \
     python setup.py install
 
-#HHSUITE#
+# HHSUITE
 WORKDIR /opt
 RUN mkdir /opt/hhsuite && \
     cd /opt/hhsuite && \
@@ -107,7 +102,10 @@ RUN mkdir /opt/hhsuite && \
     rm hhsuite-3.3.0-SSE2-Linux.tar.gz
 ENV PATH /opt/hhsuite/bin:/opt/hhsuite/scripts:$PATH
 
+# OpenMM
 RUN conda install -y -c conda-forge -c bioconda streamhpc::openmm-hip
+
+# AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     sudo ./aws/install
@@ -119,19 +117,15 @@ WORKDIR /opt/openfold
 COPY nocuda_setup.py .
 RUN python nocuda_setup.py install
 COPY amd_attention_core.py openfold/utils/kernel/attention_core.py
-COPY structure_module.py openfold/model/structure_module.py
+COPY amd_structure_module.py openfold/model/structure_module.py
 
 
 # Download folding resources
 RUN wget --no-check-certificate -P openfold/resources \
-    https://git.scicore.unibas.ch/schwede/openstructure/-/raw/7102c63615b64735c4941278d92b554ec94415f8/modules/mol/alg/src/stereo_chemical_props.txt
+    https://git.scicore.unibas.ch/schwede/openstructure/-/raw/7102c63615b64735c4941278d92b554ec94415f8/modules/mol/alg/src/stereo_chemical_props.txt && \
+    mkdir -p tests/test_data/alphafold/common && \
+    ln -rs openfold/resources/stereo_chemical_props.txt tests/test_data/alphafold/common && \
+    bash scripts/download_openfold_params.sh openfold/resources && \
+    bash scripts/download_alphafold_params.sh openfold/resources && \
+    gunzip tests/test_data/sample_feats.pickle.gz
 
-# Certain tests need access to this file
-RUN mkdir -p tests/test_data/alphafold/common && \
-    ln -rs openfold/resources/stereo_chemical_props.txt tests/test_data/alphafold/common
-RUN bash scripts/download_openfold_params.sh openfold/resources
-RUN bash scripts/download_alphafold_params.sh openfold/resources
-# Decompress test data
-RUN gunzip tests/test_data/sample_feats.pickle.gz
-
-WORKDIR /opt/openfold
