@@ -8,15 +8,15 @@ ENV ROCM_PATH /opt/rocm-$ROCM_RELEASE
 RUN apt-get update && \
     apt install apt-transport-https -y && \
     apt-get install -y \
-	  build-essential \
-	  git \
-	  libxml2 \	
+    build-essential \
+    git \
+    libxml2 \	
     gcc \
     g++ \
     doxygen \
     autoconf \
-	  rccl \
-	  && \
+    rccl \
+    && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
     apt-get clean
