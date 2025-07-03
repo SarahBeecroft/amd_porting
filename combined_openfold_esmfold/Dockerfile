@@ -132,8 +132,8 @@ COPY nocuda_setup.py .
 RUN python nocuda_setup.py install && rm /opt/openfold/openfold/utils/kernel/attention_core.py
 COPY amd_attention_core.py openfold/utils/kernel/attention_core.py
 COPY amd_attention_core.py /opt/conda/envs/py_3.9/lib/python3.9/site-packages/openfold-1.0.1-py3.9.egg/openfold/utils/kernel/attention_core.py
-COPY structure_module.py /opt/openfold/openfold/model/structure_module.py
-COPY amd_structure_module.py /opt/conda/envs/py_3.9/lib/python3.9/site-packages/openfold-1.0.1-py3.9.egg/openfold/model/structure_module.py
+COPY openfold_structure_module.py /opt/openfold/openfold/model/structure_module.py
+COPY esmfold_structure_module.py /opt/conda/envs/py_3.9/lib/python3.9/site-packages/openfold-1.0.1-py3.9.egg/openfold/model/structure_module.py
 
 # Install ESMFold dependencies
 RUN	/opt/conda/envs/py_3.9/bin/pip install --no-cache-dir git+https://github.com/facebookresearch/esm.git
