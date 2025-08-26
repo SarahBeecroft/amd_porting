@@ -14,12 +14,11 @@ RUN apt-get update && \
 # Alphafold info
 #
 ENV PYTHON_VERSION='3.10'
-ENV JAX_VERSION='0.4.14'
-ENV ALPHAFOLD_VERSION='69afc4d'
-ENV ARIA2_VERSION='1.36.0'
 ENV HHSUITE_VERSION='3.3.0'
-ENV OPENMM_VERSION='8.0.0'
-ENV OPENMM_HIP_VERSION='1631e8d'
+#ENV CC gcc
+#ENV CXX g++
+#ENV OPENMM_VERSION='8.0.0'
+#ENV OPENMM_HIP_VERSION='1631e8d'
 #
 # ROCm environment
 #
@@ -42,8 +41,7 @@ RUN set -eux ; \
   rm -rf ./Miniconda3-*
 ENV PATH /opt/miniconda3/bin:$PATH
 
-ENV CC gcc
-ENV CXX g++
+
 
 #
 # Install hh-suite.
