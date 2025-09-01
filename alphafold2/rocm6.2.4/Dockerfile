@@ -38,13 +38,6 @@ RUN set -eux ; \
     cd $ALPHAFOLD_PATH/alphafold/common ; \
     curl -LO https://git.scicore.unibas.ch/schwede/openstructure/-/raw/7102c63615b64735c4941278d92b554ec94415f8/modules/mol/alg/src/stereo_chemical_props.txt
 COPY config.py ${ALPHAFOLD_PATH}/alphafold/model
-#HHSUITE#
-#RUN mkdir /opt/hhsuite && \
-#    cd /opt/hhsuite && \
-#    wget https://github.com/soedinglab/hh-suite/releases/download/v3.3.0/hhsuite-3.3.0-SSE2-Linux.tar.gz && \
-#    tar xvfz hhsuite-3.3.0-SSE2-Linux.tar.gz && \
-#    rm hhsuite-3.3.0-SSE2-Linux.tar.gz
-#ENV PATH /opt/hhsuite/bin:/opt/hhsuite/scripts:$PATH
 
 # Install miniforge (mamba)
 RUN set -eux ; \
